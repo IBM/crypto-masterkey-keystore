@@ -32,7 +32,7 @@ The guidance given here deals primarily with __credentials__ rather than with or
 
 1. These random keys and passphrases should be generated dynamically at installation time, and they should, themselves, be protected by a randomly generated key.  This is often termed the 'master key' because it is used to secure all other cryptographic keys and passwords.
 
-1. Master keys should be generated using a key stretching algorithm like PBKDF2 from data gathered from multiple sources.  At least one of these sources should be tied to the hardware on which the system is running.  Best practices would NOT store this master key _anywhere_.  It would be re-generated at each system startup from the fixed multiple data sources, some random, some machine-specific. 
+1. Master keys should be generated using a key stretching algorithm like HKDF from data gathered from multiple sources.  At least one of these sources may be tied to the hardware on which the system is running.  Best practices would NOT store this master key _anywhere_.  It would be re-generated at each system startup from the fixed multiple data sources, some random, some machine-specific. 
 
 1. Note that depending on the method by which you gather machine-specific data to create a master key, you may need to create a method whereby the master key can be recorded and placed in a safe place immediately after installation. If you do this, do not forget to also create a means whereby the system can be restarted from the master key if there is some sort of equipment failure.
 
