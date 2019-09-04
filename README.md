@@ -1,10 +1,14 @@
 # crypto-masterkey-keystore
-Custom KeyStore implementations for Master Keys  
-Guidance for generating and managing application Master Keys  
-Sample code for generating and managing application master keys  
-----
-## Custom KeyStores
-----
+
+This repository provides an inexpensive means to protect cryptographic master keys (key encrypting keys, KEKs) in a way that is resistant to some of the most common remote file exfiltration attacks.
+
+
+[Guidance for generating and managing application Master Keys](#guidance)  
+[Custom KeyStore implementations for Master Keys](#custom-keystores)  
+[Sample code for generating and managing application master keys](#samples)
+
+
+
 ## Guidance
 1. Cryptographic keys (including TLS certificates) and passwords should be unique for each appliance instance and for each on-premises installation. If multiple customers can share the same appliance or server, each must have a unique set of keys and certificates.  Otherwise, every legitimate customer will have access to certificates/keys that allow her to spy on all other customers.
 
@@ -16,5 +20,8 @@ Sample code for generating and managing application master keys
 
 5. Note that depending on the method by which you gather machine-specific data to create a master key, you may need to create a method whereby the master key can be recorded and placed in a safe place immediately after installation. If you do this, do not forget to also create a means whereby the system can be restarted from the master key if there is some sort of equipment failure.
 
-----
+
+## Custom KeyStores
+
+
 ## Samples
