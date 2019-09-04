@@ -46,3 +46,94 @@ The Master Key (loaded and stored via our KeyStore implementations) is used to s
 ## Samples
 ### Initialize Master Key System
 ![image of Master Key Initialization](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyInit.PNG)
+Initialize the system at install time.
++ Create and save the Master Key material. There are a couple of possible approaches:
+  + Use Java's `KeyGenerator` to create a strong AES encryption key, then use our `KeyStore` to save it in a known folder. 
+  Be sure to secure the folder's permissions so only the application has permission to enter the folder.
+  + Using a secure random number generator, save random bytes into a series of files with (Base64-encoded) random names, and set the least significant nybble of their timestamps to random data. Save the files in a known protected folder.  Sorting the files in alphabetical order, digest their contents, names, and random timestamp nybbles to create a random Master Key.
++ Back up the Master Key value to a file. Use password based encryption to protect it, and have the user keep it __offline__.
++ Generate a secure random Data Encryption Key (DEK) and use the Master Key (KEK in diagram above) to encrypt and save it. You can now wipe the Master Key from memory -- it is only used to encrypt/decrypt the Data Encryption Key.
++ Use the DEK and hard-coded alias names to generate any needed KeyStore passphrases, passphrases for each entry in each KeyStore, and encryption keys to encrypt any secret data (like credentials) stored in configuration files.
+
+Because all passphrases and encryption keys can be re-generated dynamically from just the DEK and the correct alias, __none__ need to be stored in the system at all.
+  ```java
+  import java.security.NoSuchAlgorithmException;
+  import javax.crypto.KeyGenerator;
+  import javax.crypto.SecretKey;
+  import java.security.KeyStore;
+  import SecretFolderKeyStoreParameter;
+  
+  public class InitMasterKey {
+    
+    public static Folder  getInstallConfigFolder() {  // re-write for your app
+      return new Folder("./config");
+    }
+    public static SecretKey generateMasterKey() {
+      KeyGenerator keyGen = null;
+      try {
+        keyGen = KeyGenerator.getInstance("AES");  // AES key generator
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
+      keyGen.init(256);  // 256 bit key
+      SecretKey masterKey = keyGen.generateKey();
+      return masterKey;
+    }
+    public static void storeMasterKey(File configFolder, SecretKey masterKey) {
+      File keyStoreFolder = new File(configFolder.getRoot(), "keyStore");
+      KeyStore ks = KeyStore.getInstance("SecretFolderKeyStore";
+      SecretFolderKeyStoreParameter param = new SecretFolderKeyStoreParameter(keyStoreFolder);
+      ks.load(param);
+      ks.setKeyEntry("masterKey", masterKey, null, null);
+      ks.store(param);
+    }
+    public static void main(String args[]) {
+      SecretKey masterKey = generateMasterKey();
+      storeMasterKey(getInstallConfigFolder(), masterKey);
+      // Prompt installer for password, seve KEK in pwd-protected file. Warn user to move it OFFLINE.
+      backupMasterKey( getUserPassword(), getBackupFile() );
+      // Create and encrypt DEK using Master Key. Save encrypted DEK in config folder
+      SecretKey dek = generateAndStoreDataKey(getInstallConfigFolder(), masterKey);
+      masterKey.destroy();
+      // derive english passphrase from DEK and alias. phrase is at least 256 bits of entropy.
+      char [] ksPwd = SecretGen.generatePassphrase(dek, "keyStorePassphrase", 256);
+      // init and fill app's keystore with needed secrets. Use dek to derive additional passphrases as needed.
+      buildAppKeyStore(getInstallConfigFolder(), ksPwd, dek);
+      dek.destroy();
+      Arrays.fill(ksPwd, ' ');  // wipe pwd from memory
+    }
+  ```
+### Use Master Key System at Runtime
+![image of Master Key Used at Runtime](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyReadWrite.png)
+Use the system at run time.  
++ At system start-up, recover or re-generate the Master Key.  The approaches are:
+  + Use our `KeyStore` to retrieve the Master Key from the known folder.
+  + Open the known folder, sort the key material files in alphabetical order, then digest contents, names, and timestamps as before to re-generate the Master Key.
++ Use the Master Key to decrypt the Data Encrypting Key (DEK).  Wipe the Master Key from memory.
++ When a key or passphrase is needed, re-generate it using the DEK and the proper alias.
+```java
+    public static void main(String args[]) {
+      // uses KeyStore api to retrieve the Master Key
+      SecretKey masterKey = getMasterKey(getInstallConfigFolder());
+      // Use Master Key to decrypt and return DEK
+      SecretKey dek = getDataKey(getInstallConfigFolder(), masterKey);
+      masterKey.destroy();  // clear sensitive data from memory
+      masterKey = null;
+      // Use dek and alias to derive an english passphrase having at least 256 bits of entropy
+      char[] keystorePassphrase = SecretGen.generatePassphrase(dek, "keyStorePassphrase", 256); 
+      // Load app's keystore from config folder. It is protected with a strong passphrase
+      KeyStore baseStore = getAppKeyStore(getInstallConfigFolder(), keystorePassphrase);
+      Arrays.fill( keystorePassphrse, ' ');
+      // ... runtime use of secrets in app keystore ... //
+      dek.destroy();
+      dek = null;
+    }
+```
+### Restore a Lost Master Key
+![image of Restoring Master Key](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyRestore.PNG)
+Restore a lost Master Key.
++ With the system offline, use the password protected backup of the Master Key to decrypt the Data Encryption Key (DEK).
++ Use the same process used at initialization to create a __new__ Master Key. Wipe all traces of the old Master Key material, and old backup, to prevent confusion.
++ Create a new backup of the new Master Key. Again, this must be kept securely _offline_.
++ Encrypt the existing DEK with the new Master Key and save the newly encrypted DEK. Delete the old encrypted DEK file to avoid confusion.
++ The system will can now be started normally.
