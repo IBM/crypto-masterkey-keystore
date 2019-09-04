@@ -45,4 +45,4 @@ The Master Key (loaded and stored via our KeyStore implementations) is used to s
 
 ## Samples
 ### Initialize Master Key System
-![image of Master Key Initialization](https://github.com/crypto-masterkey-keystore/common/images/MasterKeyInit.PNG)
+![image of Master Key Initialization](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyInit.PNG)
