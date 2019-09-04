@@ -2,7 +2,7 @@
 
 This repository provides an inexpensive means to protect cryptographic master keys (key encrypting keys, KEKs) in a way that is resistant to some of the most common remote file exfiltration attacks.
 
-
+## Contents
 [Guidance for generating and managing application Master Keys](#guidance)  
 [Custom KeyStore implementations for Master Keys](#custom-keystores)  
 [Sample code for generating and managing application master keys](#samples)
