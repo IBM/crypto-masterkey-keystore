@@ -1,7 +1,7 @@
 # crypto-masterkey-keystore
-Custom KeyStore implementations for Master Keys
-Guidance for generating and managing application Master Keys
-Sample code for generating and managing application master keys
+Custom KeyStore implementations for Master Keys  
+Guidance for generating and managing application Master Keys  
+Sample code for generating and managing application master keys  
 ----
 ## Custom KeyStores
 ----
