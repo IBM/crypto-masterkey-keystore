@@ -10,12 +10,16 @@ This repository provides an inexpensive means to protect cryptographic master ke
 
 
 ## Guidance
-First, a couple of definitions:
+First, a few definitions:
 <dl>
   <dt>login passwords</dt>
   <dd>A password or passphrase used by a *human* to access a front-end system. Store as a randomly-salted hash.</dd>
   <dt>credentials</dt>
   <dd>A username and password pair used by a *system* to access other resources. Must be encrypted.</dd>
+  <dt>Data Encrypting Key (DEK)</dt>
+  <dd>A cryptographic key used to encrypt data. This data may be anything, including cryptographic keys.</dd>
+  <dt>Key Encrypting Key (KEK) or "Master Key"<dt>
+  <dd>The top-level cryptographic key used to protect a Data Encrypting Key</dd>
 </dl>
 
 The guidance given here deals primarily with __credentials__ rather than with ordinary user login passwords.
