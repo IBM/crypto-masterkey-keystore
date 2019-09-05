@@ -48,7 +48,7 @@ The Master Key (loaded and stored via our KeyStore implementations) is used to s
 ![image of Master Key Initialization](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyInit.PNG)
 Initialize the system at install time.
 + Create and save the Master Key material. There are a couple of possible approaches:
-  + Use Java's `KeyGenerator` to create a strong AES encryption key, then use our `KeyStore` to save it in a known folder. 
+  + Use Java's `KeyGenerator` to create a strong AES encryption key, then use our `KeyStore` to save it in a known folder. Note that any files used to store key data has a random name to make exfiltration less likely. Additionally, our `TimestampKeyStore` keeps key data in file metadata, which is not retrievable via remote exfiltration attacks.
   Be sure to secure the folder's permissions so only the application has permission to enter the folder.
   + Using a secure random number generator, save random bytes into a series of files with (Base64-encoded) random names, and set the least significant nybble of their timestamps to random data. Save the files in a known protected folder.  Sorting the files in alphabetical order, digest their contents, names, and random timestamp nybbles to create a random Master Key.
 + Back up the Master Key value to a file. Use password based encryption to protect it, and have the user keep it __offline__.
