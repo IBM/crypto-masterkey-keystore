@@ -124,7 +124,10 @@ Use the system at run time.
       // Load app's keystore from config folder. It is protected with a strong passphrase
       KeyStore baseStore = getAppKeyStore(getInstallConfigFolder(), keystorePassphrase);
       Arrays.fill( keystorePassphrse, ' ');
-      // ... runtime use of secrets in app keystore ... //
+      // ... runtime use of secrets in app keystore, each protected by custom passphrases ... //
+      Key ssoSigningKey = baseStore.getKey("ssoSigningKey", SecretGen.generatePassphrase(dek, "ssoSigningPhrase", 256));
+      Key dbCredCryptKey= baseStore.getKey("dbCredKey",     SecretGen.generatePassphrase(dek, "dbCredPhrase",     256));
+      // ... //
       dek.destroy();
       dek = null;
     }
