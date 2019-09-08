@@ -139,4 +139,4 @@ Restore a lost Master Key.
 + Use the same process used at initialization to create a __new__ Master Key. Wipe all traces of the old Master Key material, and old backup, to prevent confusion.
 + Create a new backup of the new Master Key. Again, this must be kept securely _offline_.
 + Encrypt the existing DEK with the new Master Key and save the newly encrypted DEK. Delete the old encrypted DEK file to avoid confusion.
-+ The system will can now be started normally.
++ The system will can now be started normally. 
