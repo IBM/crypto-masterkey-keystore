@@ -1,4 +1,4 @@
 # MAINTAINERS
 
-Dmitriy Beryoza - FIXME
-Ron Craig - roncraig@us.ibm.com
+Dmitriy Beryoza - FIXME  
+Ron Craig ([@FrugalGuy](https://github.com/FrugalGuy)) - roncraig@us.ibm.com
