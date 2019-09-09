@@ -71,13 +71,10 @@ git commit -s
 Please feel free to connect with us: [MAINTAINERS.md](MAINTAINERS.md).
 
 ## Setup
-**FIXME** Please add any special setup instructions for your project to help the developer
-become productive quickly.
+In order to get started with the Java portion of the library simply import the Eclipse project or use Gradle functionality to compile, test and build.
 
 ## Testing
-**FIXME** Please provide information that helps the developer test any changes they make
-before submitting.
+Any functionality you add should have associated unit test(s) that exercise it. This way we will be able to make changes without breaking existing functionality.
 
 ## Coding style guidelines
-**FIXME** Optional, but recommended: please share any specific style guidelines you might
-have for your project.
+Coding styles are frequent subjects of religious wars in software development. We do not want to enforce a coding style, but for readability safe and out of respect for your peers please follow the style existing code follows.
