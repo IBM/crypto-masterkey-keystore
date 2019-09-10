@@ -1,6 +1,6 @@
 # crypto-masterkey-keystore
 
-This repository provides an inexpensive means to protect cryptographic master keys (key encrypting keys, KEKs) in a way that is resistant to some of the most common remote file exfiltration attacks.
+This repository provides an inexpensive means to protect cryptographic master keys (key encryption keys, KEKs) in a way that is resistant to some of the most common remote file exfiltration attacks.
 
 ## Contents
 [Guidance for generating and managing application Master Keys](#guidance)  
@@ -16,10 +16,10 @@ First, a few definitions:
   <dd>A password or passphrase used by a <b>human</b> to access a front-end system. Store as a randomly-salted hash.</dd>
   <dt>credentials</dt>
   <dd>A username and password pair used by a <b>system</b> to access other resources. Must be encrypted.</dd>
-  <dt>Data Encrypting Key (DEK)</dt>
-  <dd>A cryptographic key used to encrypt data. This data may be anything, including cryptographic keys.</dd>
-  <dt>Key Encrypting Key (KEK) or "Master Key"<dt>
-  <dd>The top-level cryptographic key used to protect a Data Encrypting Key</dd>
+  <dt>Data Encryption Key (DEK)</dt>
+  <dd>A cryptographic key used to encrypt secrets. These secrets may be anything, including cryptographic keys.</dd>
+  <dt>Key Encryption Key (KEK) or "Master Key"<dt>
+  <dd>The top-level cryptographic key used to protect a Data Encryption Key</dd>
 </dl>
 
 The guidance given here deals primarily with __credentials__ rather than with ordinary user login passwords.
@@ -109,7 +109,7 @@ Use the system at run time.
 + At system start-up, recover or re-generate the Master Key.  The approaches are:
   + Use our `KeyStore` to retrieve the Master Key from the known folder.
   + Open the known folder, sort the key material files in alphabetical order, then digest contents, names, and timestamps as before to re-generate the Master Key.
-+ Use the Master Key to decrypt the Data Encrypting Key (DEK).  Wipe the Master Key from memory.
++ Use the Master Key to decrypt the Data Encryption Key (DEK).  Wipe the Master Key from memory.
 + When a key or passphrase is needed, re-generate it using the DEK and the proper alias.
 ```java
     public static void main(String args[]) {
