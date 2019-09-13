@@ -57,52 +57,63 @@ Initialize the system at install time.
 
 Because all passphrases and encryption keys can be re-generated dynamically from just the DEK and the correct alias, __none__ need to be stored in the system at all.
   ```java
-  import java.security.NoSuchAlgorithmException;
-  import javax.crypto.KeyGenerator;
-  import javax.crypto.SecretKey;
-  import java.security.KeyStore;
-  import SecretFolderKeyStoreParameter;
-  
-  public class InitMasterKey {
-    
-    public static Folder  getInstallConfigFolder() {  // re-write for your app
-      return new Folder("./config");
-    }
-    public static SecretKey generateMasterKey() {
-      KeyGenerator keyGen = null;
-      try {
-        keyGen = KeyGenerator.getInstance("AES");  // AES key generator
-      } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-      }
-      keyGen.init(256);  // 256 bit key
-      SecretKey masterKey = keyGen.generateKey();
-      return masterKey;
-    }
-    public static void storeMasterKey(File configFolder, SecretKey masterKey) {
-      File keyStoreFolder = new File(configFolder.getRoot(), "keyStore");
-      KeyStore ks = KeyStore.getInstance("SecretFolderKeyStore";
-      SecretFolderKeyStoreParameter param = new SecretFolderKeyStoreParameter(keyStoreFolder);
-      ks.load(param);
-      ks.setKeyEntry("masterKey", masterKey, null, null);
-      ks.store(param);
-    }
-    public static void main(String args[]) {
-      SecretKey masterKey = generateMasterKey();
-      storeMasterKey(getInstallConfigFolder(), masterKey);
-      // Prompt installer for password, seve KEK in pwd-protected file. Warn user to move it OFFLINE.
-      backupMasterKey( getUserPassword(), getBackupFile() );
-      // Create and encrypt DEK using Master Key. Save encrypted DEK in config folder
-      SecretKey dek = generateAndStoreDataKey(getInstallConfigFolder(), masterKey);
-      masterKey.destroy();
-      // derive english passphrase from DEK and alias. phrase is at least 256 bits of entropy.
-      char [] ksPwd = SecretGen.generatePassphrase(dek, "keyStorePassphrase", 256);
-      // init and fill app's keystore with needed secrets. Use dek to derive additional passphrases as needed.
-      buildAppKeyStore(getInstallConfigFolder(), ksPwd, dek);
-      dek.destroy();
-      Arrays.fill(ksPwd, ' ');  // wipe pwd from memory
-    }
-  ```
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.KeyStore.LoadStoreParameter;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import com.ibm.eht.sidekek.SecretFolderKeyStoreSpi;
+import com.ibm.eht.sidekek.SideKEK;
+import java.io.File;
+import java.security.Key;
+import java.security.KeyStore;
+
+public class InitMasterKey {
+
+	private static File getInstallConfigFolder() { // re-write for your app
+		return new File("./config");
+	}
+
+	private static SecretKey generateMasterKey() throws NoSuchAlgorithmException {
+		KeyGenerator keyGen = null;
+
+		keyGen = KeyGenerator.getInstance("AES"); // AES key generator
+		
+		keyGen.init(256); // 256 bit key
+		SecretKey masterKey = keyGen.generateKey();
+		return masterKey;
+	}
+
+	private static void storeMasterKey(File configFolder, Key masterKey) throws Exception {
+		File keyStoreFolder = new File(configFolder, "keyStore");
+		KeyStore ks = KeyStore.getInstance(SideKEK.SECRET_FOLDER_KEYSTORE);
+		LoadStoreParameter param = new SecretFolderKeyStoreSpi.SecretFolderKeyStoreParameter(keyStoreFolder);
+		ks.load(param);
+		ks.setKeyEntry("masterKey", masterKey, null, null);
+		ks.store(param);
+	}
+
+	public static void main(String args[]) throws Exception {
+		
+		// Initialize the provider
+		Security.addProvider(new SideKEK());
+		
+		// We start by generating a new master key (KEK)
+		SecretKey masterKey = generateMasterKey();
+		// ...and storing it
+		storeMasterKey(getInstallConfigFolder(), masterKey);
+		
+		// Now you can perform the following steps:
+		//
+		// 1. (optionally) Save a copy of the master key offline
+		// 2. Generate DEK and store it in a keystore, encrypted with KEK
+		// 3. Destroy KEK in memory (call "masterKey.destroy()")
+		// 4. For each secret that you need to store derive an English passphrase from 
+		//     its alias and DEK, and store it in a keystore, encrypted with this passphrase
+		// 5. Destroy DEK in memory
+	}
+}
+```
 ### Use Master Key System at Runtime
 ![image of Master Key Used at Runtime](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyReadWrite.png)
 Use the system at run time.  
@@ -112,25 +123,46 @@ Use the system at run time.
 + Use the Master Key to decrypt the Data Encryption Key (DEK).  Wipe the Master Key from memory.
 + When a key or passphrase is needed, re-generate it using the DEK and the proper alias.
 ```java
-    public static void main(String args[]) {
-      // uses KeyStore api to retrieve the Master Key
-      SecretKey masterKey = getMasterKey(getInstallConfigFolder());
-      // Use Master Key to decrypt and return DEK
-      SecretKey dek = getDataKey(getInstallConfigFolder(), masterKey);
-      masterKey.destroy();  // clear sensitive data from memory
-      masterKey = null;
-      // Use dek and alias to derive an english passphrase having at least 256 bits of entropy
-      char[] keystorePassphrase = SecretGen.generatePassphrase(dek, "keyStorePassphrase", 256); 
-      // Load app's keystore from config folder. It is protected with a strong passphrase
-      KeyStore baseStore = getAppKeyStore(getInstallConfigFolder(), keystorePassphrase);
-      Arrays.fill( keystorePassphrse, ' ');
-      // ... runtime use of secrets in app keystore, each protected by custom passphrases ... //
-      Key ssoSigningKey = baseStore.getKey("ssoSigningKey", SecretGen.generatePassphrase(dek, "ssoSigningPhrase", 256));
-      Key dbCredCryptKey= baseStore.getKey("dbCredKey",     SecretGen.generatePassphrase(dek, "dbCredPhrase",     256));
-      // ... //
-      dek.destroy();
-      dek = null;
-    }
+import java.io.File;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.Security;
+import java.security.KeyStore.LoadStoreParameter;
+import com.ibm.eht.sidekek.SecretFolderKeyStoreSpi;
+import com.ibm.eht.sidekek.SideKEK;
+
+public class UseMasterKey {
+
+	public static File getInstallConfigFolder() { // re-write for your app
+		return new File("./config");
+	}
+	
+	private static Key loadMasterKey(File configFolder) throws Exception {
+		File keyStoreFolder = new File(configFolder, "keyStore");
+		KeyStore ks = KeyStore.getInstance(SideKEK.SECRET_FOLDER_KEYSTORE);
+		LoadStoreParameter param = new SecretFolderKeyStoreSpi.SecretFolderKeyStoreParameter(keyStoreFolder);
+		ks.load(param);
+		Key masterKey = ks.getKey("masterKey", null);
+		return masterKey;
+	}
+
+	public static void main(String args[]) throws Exception {
+		
+		// Initialize the provider
+		Security.addProvider(new SideKEK());
+
+		// Load master Key
+		Key masterKey = loadMasterKey(getInstallConfigFolder());
+		
+		// Now you can perform the following steps:
+		//
+		// 1. Load DEK and decrypt it with KEK
+		// 2. Destroy KEK in memory (call "masterKey.destroy()")
+		// 3. For each secret that you need to sload, derive an English passphrase from 
+		//     its alias and DEK, and and load it from a keystore, decrypting with this passphrase
+		// 5. Destroy DEK in memory
+	}
+}
 ```
 ### Restore a Lost Master Key
 ![image of Restoring Master Key](https://github.com/IBM/crypto-masterkey-keystore/blob/master/common/images/MasterKeyRestore.PNG)
