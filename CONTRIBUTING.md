@@ -39,7 +39,7 @@ e.g.
 
 ```
 /*
-Copyright <holder> All Rights Reserved.
+Copyright 2019 IBM Corp. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
