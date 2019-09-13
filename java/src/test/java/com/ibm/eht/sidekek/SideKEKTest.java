@@ -1,3 +1,9 @@
+/*
+  Copyright 2019 IBM Corp. All Rights Reserved.
+
+  SPDX-License-Identifier: Apache-2.0
+*/
+
 package com.ibm.eht.sidekek;
 
 import static org.junit.Assert.*;
