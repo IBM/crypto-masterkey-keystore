@@ -158,7 +158,7 @@ public class UseMasterKey {
 		//
 		// 1. Load DEK and decrypt it with KEK
 		// 2. Destroy KEK in memory (call "masterKey.destroy()")
-		// 3. For each secret that you need to sload, derive an English passphrase from 
+		// 3. For each secret that you need to load, derive an English passphrase from 
 		//     its alias and DEK, and and load it from a keystore, decrypting with this passphrase
 		// 5. Destroy DEK in memory
 	}
