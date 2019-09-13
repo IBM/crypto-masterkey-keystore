@@ -39,9 +39,9 @@ e.g.
 
 ```
 /*
-Copyright 2019 IBM Corp. All Rights Reserved.
+  Copyright 2019 IBM Corp. All Rights Reserved.
 
-SPDX-License-Identifier: Apache-2.0
+  SPDX-License-Identifier: Apache-2.0
 */
 ```
 
