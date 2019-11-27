@@ -1,5 +1,7 @@
 # crypto-masterkey-keystore
 
+**FYI, this library has been migrated into an [OWASP Project](https://github.com/OWASP/SideKEK) and will from now on be maintained there**
+
 This repository provides an inexpensive means to protect cryptographic master keys (key encryption keys, KEKs) in a way that is resistant to some of the most common remote file exfiltration attacks.
 
 ## Contents
